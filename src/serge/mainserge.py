@@ -45,6 +45,21 @@ def lister_memoire():
         return jsonify(fichiers)
     except Exception as e:
         return jsonify({"erreur": str(e)}), 500
+@app.route("/meta", methods=["GET"])
+def get_metadata():
+    fichier = request.args.get("fichier")
+    try:
+        blob_client = container_client.get_blob_client(blob=fichier)
+        props = blob_client.get_blob_properties()
+        return jsonify({
+            "fichier": fichier,
+            "taille_octets": props.size,
+            "taille_mo": round(props.size / 1024 / 1024, 2),
+            "modifie_le": props.last_modified.strftime("%Y-%m-%d %H:%M:%S")
+        })
+    except Exception as e:
+        return jsonify({"erreur": str(e)}), 500
+
 
 if __name__ == "__main__":
     app.run()
