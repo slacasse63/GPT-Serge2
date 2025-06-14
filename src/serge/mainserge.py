@@ -30,6 +30,14 @@ def write_blob():
         return jsonify({"message": f"Le fichier '{fichier}' a été écrit avec succès."})
     except Exception as e:
         return jsonify({"erreur": str(e)}), 500
+@app.get("/list")
+def listerMemoire(prefix: str = ""):
+    fichiers = []
+    blobs = container_client.list_blobs(name_starts_with=prefix)
+    for blob in blobs:
+        fichiers.append(blob.name)
+    return fichiers
+
 
 if __name__ == "__main__":
     app.run()
