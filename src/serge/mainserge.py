@@ -114,6 +114,22 @@ def cloturer_session():
     except Exception as e:
         return jsonify({"erreur": str(e)}), 500
 
+@app.route("/write-get", methods=["GET"])
+def write_blob_get():
+    fichier = request.args.get("fichier")
+    contenu = request.args.get("contenu")
+    
+    if not fichier or not contenu:
+        return jsonify({"erreur": "Paramètres 'fichier' et 'contenu' requis"}), 400
+
+    try:
+        blob_client = container_client.get_blob_client(blob=fichier)
+        blob_client.upload_blob(contenu, overwrite=True)
+        return jsonify({"message": f"Le fichier '{fichier}' a été écrit avec succès via GET."})
+    except Exception as e:
+        return jsonify({"erreur": str(e)}), 500
+
+
 
 if __name__ == "__main__":
     app.run()
