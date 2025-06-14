@@ -77,6 +77,42 @@ def get_current_datetime():
         "abreviation": abrev_fr
     })
 
+from datetime import datetime
+import pytz
+
+@app.route("/cloturer-session", methods=["POST"])
+def cloturer_session():
+    try:
+        # Obtenir l'heure locale formatée pour nommer le dossier
+        tz = pytz.timezone("Canada/Eastern")
+        now = datetime.now(tz)
+        timestamp = now.strftime("950-sessions/%Y-%m-%dT%H-%M-%SZ")
+
+        source_prefix = "fmus/selac2/010-memoire/900-temporaire/"
+        target_prefix = f"fmus/selac2/010-memoire/{timestamp}/"
+
+        moved_files = []
+
+        for blob in container_client.list_blobs(name_starts_with=source_prefix):
+            source_blob = container_client.get_blob_client(blob.name)
+            target_name = blob.name.replace(source_prefix, target_prefix)
+
+            # Copier le fichier
+            copied_blob = container_client.get_blob_client(target_name)
+            copied_blob.start_copy_from_url(source_blob.url)
+
+            # Supprimer le fichier d’origine
+            container_client.delete_blob(blob.name)
+            moved_files.append(target_name)
+
+        return jsonify({
+            "message": f"{len(moved_files)} fichier(s) déplacé(s)",
+            "nouveau_dossier": target_prefix,
+            "fichiers": moved_files
+        })
+
+    except Exception as e:
+        return jsonify({"erreur": str(e)}), 500
 
 
 if __name__ == "__main__":
