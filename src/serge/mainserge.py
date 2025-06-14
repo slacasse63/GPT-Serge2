@@ -62,6 +62,22 @@ def get_metadata():
     except Exception as e:
         return jsonify({"erreur": str(e)}), 500
 
+@app.route("/now", methods=["GET"])
+def get_current_datetime():
+    tz = pytz.timezone("Canada/Eastern")
+    now = datetime.now(tz)
+    abrev_anglaise = now.strftime("%Z")  # 'EST' ou 'EDT'
+    abrevs_fr = {"EST": "HNE", "EDT": "HAE"}
+    abrev_fr = abrevs_fr.get(abrev_anglaise, abrev_anglaise)
+
+    return jsonify({
+        "iso": now.astimezone(pytz.utc).isoformat(),
+        "horodatage": now.strftime(f"%Y/%m/%d-%H:%M:%S {abrev_fr}"),
+        "timezone": "Canada/Eastern",
+        "abreviation": abrev_fr
+    })
+
+
 
 if __name__ == "__main__":
     app.run()
